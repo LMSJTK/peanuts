@@ -111,6 +111,11 @@ aside {
   margin: 0 0 8px;
 }
 
+.panel h3 {
+  font-size: 11px;
+  margin: 6px 0 8px;
+}
+
 .log {
   height: 240px;
   overflow-y: auto;
@@ -158,6 +163,138 @@ aside {
   font-size: 9px;
   opacity: 0.8;
   margin-top: 8px;
+}
+
+.management {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.management-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.management-column {
+  background: rgba(0, 0, 0, 0.18);
+  border: 2px solid rgba(140, 230, 255, 0.35);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.management-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.manager-row {
+  display: grid;
+  grid-template-columns: 46px 1fr 90px;
+  gap: 8px;
+  align-items: center;
+}
+
+.management-list.rotation .manager-row {
+  grid-template-columns: 60px 1fr 80px;
+}
+
+.order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  background: rgba(140, 230, 255, 0.14);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.text-input,
+.select-input,
+.number-input,
+.field input[type='range'] {
+  font-family: inherit;
+  border: 1px solid rgba(140, 230, 255, 0.6);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  padding: 7px;
+  font-size: 11px;
+}
+
+.number-input {
+  width: 90px;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 10px;
+  opacity: 0.9;
+}
+
+.pill {
+  background: rgba(140, 230, 255, 0.12);
+  border: 1px solid var(--accent);
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba(140, 230, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.chip.active {
+  background: rgba(140, 230, 255, 0.18);
+  border-color: var(--accent);
+}
+
+.chip input {
+  accent-color: var(--accent);
+}
+
+.concessions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.concession-row {
+  display: grid;
+  grid-template-columns: 1fr 90px;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
 }
 
 @media (max-width: 980px) {
