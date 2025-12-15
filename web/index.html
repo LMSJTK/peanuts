@@ -38,10 +38,38 @@
             </div>
             <p class="hint">Energy feeds back into simulation as bounded modifiers.</p>
           </section>
+          <section class="panel management">
+            <h2>Club Management</h2>
+            <div class="management-grid">
+              <div class="management-column">
+                <h3>Lineups &amp; Rotation</h3>
+                <div id="lineupList" class="management-list"></div>
+                <div id="rotationList" class="management-list rotation"></div>
+              </div>
+              <div class="management-column">
+                <h3>Economic Levers</h3>
+                <label class="field">
+                  <span>Ticket Price</span>
+                  <input id="ticketPrice" type="range" min="8" max="80" step="1" />
+                  <span id="ticketDisplay" class="pill"></span>
+                </label>
+                <div class="field-group">
+                  <div class="field-label">Promotions</div>
+                  <div id="promotionList" class="chip-row"></div>
+                </div>
+                <div class="field-group">
+                  <div class="field-label">Concessions Pricing</div>
+                  <div id="concessionsList" class="concessions"></div>
+                </div>
+              </div>
+            </div>
+            <p class="hint">Management inputs are stored locally and exposed for future AI managers.</p>
+          </section>
         </aside>
       </main>
     </div>
 
+    <script type="module" src="management.js"></script>
     <script src="viewer.js"></script>
   </body>
 </html>
