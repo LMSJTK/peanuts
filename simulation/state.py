@@ -6,6 +6,7 @@ from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Sequence
 import random
 
+from .crowd import CrowdEnergyAccumulator
 from .pitch import PitchContext, PitchOutcome, PitchParticipants, BatterRatings, PitcherRatings, DefenseRatings, resolve_pitch_outcome
 
 
@@ -26,6 +27,9 @@ class PitchEvent:
     runs_scored: int
     total_runs: int
     contact_quality: float
+    crowd_energy_before: float
+    crowd_energy_after: float
+    crowd_modifiers: Dict[str, float]
 
     def as_dict(self) -> Dict[str, object]:
         data = asdict(self)
@@ -48,7 +52,7 @@ class HalfInningState:
         self.lineup = lineup
         self.pitcher = pitcher
         self.defense = defense
-        self.modifiers = situational_modifiers or {}
+        self.base_modifiers = situational_modifiers or {}
         self.balls = 0
         self.strikes = 0
         self.outs = 0
@@ -58,6 +62,7 @@ class HalfInningState:
         self.pitch_number = 0
         self.events: List[PitchEvent] = []
         self._rng = random.Random(seed)
+        self.crowd = CrowdEnergyAccumulator()
 
     def _current_batter(self) -> Dict[str, object]:
         return self.lineup[self.batter_index % len(self.lineup)]
@@ -77,8 +82,14 @@ class HalfInningState:
             strikes=self.strikes,
             outs=self.outs,
             bases=self.bases,
-            situational_modifiers=self.modifiers,
+            situational_modifiers=self._effective_modifiers(),
         )
+
+    def _effective_modifiers(self) -> Dict[str, float]:
+        effective = dict(self.base_modifiers)
+        for key, value in self.crowd.snapshot().modifiers.items():
+            effective[key] = effective.get(key, 0.0) + value
+        return effective
 
     def _advance_batter(self) -> None:
         self.balls = 0
@@ -135,6 +146,7 @@ class HalfInningState:
 
     def pitch_once(self, seed: Optional[int] = None) -> PitchEvent:
         participants = self._participants()
+        decayed_snapshot = self.crowd.tick()
         context = self._context()
         outcome = resolve_pitch_outcome(participants, context, rng=self._rng if seed is None else None, seed=seed)
 
@@ -172,6 +184,7 @@ class HalfInningState:
             applied_result = outcome.result
 
         self.runs += runs_scored
+        updated_crowd = self.crowd.apply_event(applied_result, runs_scored, outcome.contact_quality)
 
         event = PitchEvent(
             number=self.pitch_number,
@@ -189,6 +202,9 @@ class HalfInningState:
             runs_scored=runs_scored,
             total_runs=self.runs,
             contact_quality=outcome.contact_quality,
+            crowd_energy_before=decayed_snapshot.energy,
+            crowd_energy_after=updated_crowd.energy,
+            crowd_modifiers=updated_crowd.modifiers,
         )
         self.events.append(event)
         return event

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Peanuts & Crackerjacks Live View</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="frame">
+      <header>
+        <div>
+          <h1>Peanuts &amp; Crackerjacks</h1>
+          <p class="subtitle">SNES-inspired canvas view with live play-by-play</p>
+        </div>
+        <div class="controls">
+          <button id="playPause">Pause</button>
+          <button id="step">Next Pitch</button>
+          <button id="skip">Skip to End</button>
+          <label class="speed">Speed
+            <input id="speed" type="range" min="250" max="2000" step="250" value="900" />
+          </label>
+        </div>
+      </header>
+
+      <main>
+        <canvas id="field" width="720" height="420"></canvas>
+        <aside>
+          <section class="panel">
+            <h2>Play-by-Play</h2>
+            <div id="log" class="log"></div>
+          </section>
+          <section class="panel">
+            <h2>Crowd Energy</h2>
+            <div class="energy">
+              <div id="energyBar" class="energy-bar"></div>
+              <span id="energyValue" class="energy-value">0</span>
+            </div>
+            <p class="hint">Energy feeds back into simulation as bounded modifiers.</p>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="viewer.js"></script>
+  </body>
+</html>

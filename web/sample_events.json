@@ -1,0 +1,233 @@
+[
+  {
+    "number": 1,
+    "batter": "Ivy Sparks",
+    "outcome": "called_strike",
+    "detail": "Called strike",
+    "balls_before": 0,
+    "strikes_before": 0,
+    "outs_before": 0,
+    "balls_after": 0,
+    "strikes_after": 1,
+    "outs_after": 0,
+    "bases_before": [
+      false,
+      false,
+      false
+    ],
+    "bases_after": [
+      false,
+      false,
+      false
+    ],
+    "runs_scored": 0,
+    "total_runs": 0,
+    "contact_quality": 0.0,
+    "crowd_energy_before": 13.2,
+    "crowd_energy_after": 10.7,
+    "crowd_modifiers": {
+      "global": 0.00428,
+      "contact": 0.005350000000000001,
+      "power": 0.0064199999999999995,
+      "aggression": 0.00214
+    }
+  },
+  {
+    "number": 2,
+    "batter": "Ivy Sparks",
+    "outcome": "ball",
+    "detail": "Ball out of zone",
+    "balls_before": 0,
+    "strikes_before": 1,
+    "outs_before": 0,
+    "balls_after": 1,
+    "strikes_after": 1,
+    "outs_after": 0,
+    "bases_before": [
+      false,
+      false,
+      false
+    ],
+    "bases_after": [
+      false,
+      false,
+      false
+    ],
+    "runs_scored": 0,
+    "total_runs": 0,
+    "contact_quality": 0.0,
+    "crowd_energy_before": 9.415999999999999,
+    "crowd_energy_after": 9.415999999999999,
+    "crowd_modifiers": {
+      "global": 0.003766399999999999,
+      "contact": 0.0047079999999999995,
+      "power": 0.0056495999999999985,
+      "aggression": 0.0018831999999999996
+    }
+  },
+  {
+    "number": 3,
+    "batter": "Ivy Sparks",
+    "outcome": "inplay_out",
+    "detail": "Weak contact; fielded for an out",
+    "balls_before": 1,
+    "strikes_before": 1,
+    "outs_before": 0,
+    "balls_after": 0,
+    "strikes_after": 0,
+    "outs_after": 1,
+    "bases_before": [
+      false,
+      false,
+      false
+    ],
+    "bases_after": [
+      false,
+      false,
+      false
+    ],
+    "runs_scored": 0,
+    "total_runs": 0,
+    "contact_quality": 0.6542112443344568,
+    "crowd_energy_before": 8.286079999999998,
+    "crowd_energy_after": 5.799164224886687,
+    "crowd_modifiers": {
+      "global": 0.002319665689954675,
+      "contact": 0.002899582112443344,
+      "power": 0.0034794985349320125,
+      "aggression": 0.0011598328449773374
+    }
+  },
+  {
+    "number": 4,
+    "batter": "Ivy Sparks",
+    "outcome": "inplay_out",
+    "detail": "Weak contact; fielded for an out",
+    "balls_before": 0,
+    "strikes_before": 0,
+    "outs_before": 1,
+    "balls_after": 0,
+    "strikes_after": 0,
+    "outs_after": 2,
+    "bases_before": [
+      false,
+      false,
+      false
+    ],
+    "bases_after": [
+      false,
+      false,
+      false
+    ],
+    "runs_scored": 0,
+    "total_runs": 0,
+    "contact_quality": 0.3955440052629644,
+    "crowd_energy_before": 5.103264517900285,
+    "crowd_energy_after": 2.611175398005544,
+    "crowd_modifiers": {
+      "global": 0.0010444701592022176,
+      "contact": 0.0013055876990027719,
+      "power": 0.0015667052388033261,
+      "aggression": 0.0005222350796011088
+    }
+  },
+  {
+    "number": 5,
+    "batter": "Ivy Sparks",
+    "outcome": "foul",
+    "detail": "Fouled away",
+    "balls_before": 0,
+    "strikes_before": 0,
+    "outs_before": 2,
+    "balls_after": 0,
+    "strikes_after": 1,
+    "outs_after": 2,
+    "bases_before": [
+      false,
+      false,
+      false
+    ],
+    "bases_after": [
+      false,
+      false,
+      false
+    ],
+    "runs_scored": 0,
+    "total_runs": 0,
+    "contact_quality": 0.08937302541327341,
+    "crowd_energy_before": 2.297834350244879,
+    "crowd_energy_after": 0.0,
+    "crowd_modifiers": {
+      "global": 0.0,
+      "contact": 0.0,
+      "power": 0.0,
+      "aggression": 0.0
+    }
+  },
+  {
+    "number": 6,
+    "batter": "Ivy Sparks",
+    "outcome": "called_strike",
+    "detail": "Called strike",
+    "balls_before": 0,
+    "strikes_before": 1,
+    "outs_before": 2,
+    "balls_after": 0,
+    "strikes_after": 2,
+    "outs_after": 2,
+    "bases_before": [
+      false,
+      false,
+      false
+    ],
+    "bases_after": [
+      false,
+      false,
+      false
+    ],
+    "runs_scored": 0,
+    "total_runs": 0,
+    "contact_quality": 0.0,
+    "crowd_energy_before": 0.0,
+    "crowd_energy_after": 0.0,
+    "crowd_modifiers": {
+      "global": 0.0,
+      "contact": 0.0,
+      "power": 0.0,
+      "aggression": 0.0
+    }
+  },
+  {
+    "number": 7,
+    "batter": "Ivy Sparks",
+    "outcome": "inplay_out",
+    "detail": "Weak contact; fielded for an out",
+    "balls_before": 0,
+    "strikes_before": 2,
+    "outs_before": 2,
+    "balls_after": 0,
+    "strikes_after": 0,
+    "outs_after": 3,
+    "bases_before": [
+      false,
+      false,
+      false
+    ],
+    "bases_after": [
+      false,
+      false,
+      false
+    ],
+    "runs_scored": 0,
+    "total_runs": 0,
+    "contact_quality": 4.194100896212838,
+    "crowd_energy_before": 0.0,
+    "crowd_energy_after": 0.0,
+    "crowd_modifiers": {
+      "global": 0.0,
+      "contact": 0.0,
+      "power": 0.0,
+      "aggression": 0.0
+    }
+  }
+]
