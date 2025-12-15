@@ -1,5 +1,6 @@
 """Simulation utilities for Peanuts and Crackerjacks."""
 
+from .crowd import CrowdEnergyAccumulator
 from .pitch import resolve_pitch_outcome, PitchParticipants, PitchContext, PitchOutcome
 from .state import HalfInningState, PitchEvent
 from .fixtures import SAMPLE_PITCHER, SAMPLE_BATTER, SAMPLE_DEFENSE, SAMPLE_STADIUM
@@ -11,6 +12,7 @@ __all__ = [
     "PitchOutcome",
     "HalfInningState",
     "PitchEvent",
+    "CrowdEnergyAccumulator",
     "SAMPLE_PITCHER",
     "SAMPLE_BATTER",
     "SAMPLE_DEFENSE",
