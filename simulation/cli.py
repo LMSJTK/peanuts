@@ -19,6 +19,21 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=None, help="Random seed for deterministic output")
     parser.add_argument("--max-pitches", type=int, default=120, help="Fail-safe pitch cap")
     parser.add_argument("--json", action="store_true", help="Emit JSON replay data instead of text")
+    parser.add_argument(
+        "--disable-crowd-effects",
+        action="store_true",
+        help="Ignore crowd-driven modifiers during simulation",
+    )
+    parser.add_argument(
+        "--disable-stadium-effects",
+        action="store_true",
+        help="Ignore base stadium modifiers during simulation",
+    )
+    parser.add_argument(
+        "--enable-organ-flair",
+        action="store_true",
+        help="Allow the optional organ agent to add small situational boosts",
+    )
     args = parser.parse_args()
 
     lineup = build_lineup()
@@ -28,12 +43,15 @@ def main() -> None:
         pitcher=SAMPLE_PITCHER["ratings"],
         situational_modifiers=SAMPLE_STADIUM["modifiers"],
         seed=args.seed,
+        enable_crowd_effects=not args.disable_crowd_effects,
+        enable_stadium_effects=not args.disable_stadium_effects,
+        enable_organ_flair=args.enable_organ_flair,
     )
 
     state.play_to_completion(max_pitches=args.max_pitches)
 
     if args.json:
-        print(json.dumps([event.as_dict() for event in state.events], indent=2))
+        print(json.dumps(state.replay_log, indent=2))
         return
 
     print(f"Stadium: {SAMPLE_STADIUM['name']}")
