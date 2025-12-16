@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from typing import Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -74,6 +75,12 @@ def generate_payload(args: argparse.Namespace) -> dict:
     return payload
 
 
+def _load_artifact(path: Path) -> Optional[dict]:
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def write_feed(payload: dict, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -88,9 +95,20 @@ def start_server(directory: Path, port: int) -> ThreadingHTTPServer:
 
 
 def run_once(args: argparse.Namespace) -> None:
-    payload = generate_payload(args)
-    write_feed(payload, Path(args.output))
-    print(f"Wrote replay feed with {len(payload.get('events', []))} events to {args.output}")
+    output_path = Path(args.output)
+    payload = None
+    if args.artifact_path:
+        if not args.artifact_path.exists():
+            raise FileNotFoundError(f"Artifact not found: {args.artifact_path}")
+        payload = _load_artifact(args.artifact_path)
+
+    if payload is None:
+        payload = generate_payload(args)
+    else:
+        payload.setdefault("updated_at", _timestamp())
+
+    write_feed(payload, output_path)
+    print(f"Wrote replay feed with {len(payload.get('events', []))} events to {output_path}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -109,16 +127,28 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--disable-stadium-effects", action="store_true", help="Ignore stadium modifiers during simulation")
     parser.add_argument("--enable-organ-flair", action="store_true", help="Allow the optional organ agent to add small boosts")
     parser.add_argument("--output", type=Path, default=Path("web/replay.json"), help="Where to write the replay feed")
+    parser.add_argument(
+        "--artifact-path",
+        type=Path,
+        default=None,
+        help="Existing replay artifact to serve instead of generating a new one",
+    )
     parser.add_argument("--serve", action="store_true", help="Serve the /web directory with a lightweight HTTP server")
     parser.add_argument("--port", type=int, default=8000, help="Port for the dev HTTP server")
     parser.add_argument("--watch", action="store_true", help="Press Enter to re-run the sim and refresh the feed")
+    parser.add_argument(
+        "--web-root",
+        type=Path,
+        default=PROJECT_ROOT / "web",
+        help="Directory to serve when running the dev HTTP server",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
 
-    web_dir = Path(args.output).resolve().parent
+    web_dir = Path(args.web_root).resolve()
     server = start_server(web_dir, args.port) if args.serve else None
     if server:
         print(f"Serving {web_dir} at http://localhost:{args.port} (Ctrl+C to stop)")

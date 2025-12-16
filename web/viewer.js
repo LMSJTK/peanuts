@@ -9,7 +9,8 @@ const skipBtn = document.getElementById('skip');
 const speedInput = document.getElementById('speed');
 const statusEl = document.getElementById('feedStatus');
 
-const FEED_PATH = 'replay.json';
+const params = new URLSearchParams(window.location.search);
+const FEED_PATH = params.get('artifact') || params.get('feed') || 'replay.json';
 const POLL_INTERVAL_MS = 4000;
 
 let events = [];
