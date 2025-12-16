@@ -7,12 +7,17 @@ const playPauseBtn = document.getElementById('playPause');
 const stepBtn = document.getElementById('step');
 const skipBtn = document.getElementById('skip');
 const speedInput = document.getElementById('speed');
+const statusEl = document.getElementById('feedStatus');
+
+const FEED_PATH = 'replay.json';
+const POLL_INTERVAL_MS = 4000;
 
 let events = [];
 let currentIndex = 0;
 let playing = true;
 let lastTick = 0;
 let tickDelay = Number(speedInput.value);
+let feedVersion = null;
 
 const palette = {
   grass: '#1b8a5a',
@@ -128,9 +133,11 @@ function paintPlayText(event) {
 }
 
 function updateLog(event) {
+  const basesBefore = event.bases_before.map((b) => (b ? '1' : '-')).join('');
+  const basesAfter = event.bases_after.map((b) => (b ? '1' : '-')).join('');
   const entry = document.createElement('div');
   entry.className = 'log-entry';
-  entry.innerHTML = `<strong>#${event.number}</strong> ${event.batter}: ${event.outcome} (${event.balls_before}-${event.strikes_before} → ${event.balls_after}-${event.strikes_after}), bases ${event.bases_before.join('')} → ${event.bases_after.join('')}`;
+  entry.innerHTML = `<strong>#${event.number}</strong> ${event.batter}: ${event.outcome} (${event.balls_before}-${event.strikes_before} → ${event.balls_after}-${event.strikes_after}), bases ${basesBefore} → ${basesAfter}`;
   logEl.appendChild(entry);
   logEl.scrollTop = logEl.scrollHeight;
 }
@@ -191,17 +198,122 @@ speedInput.addEventListener('input', () => {
   tickDelay = Number(speedInput.value);
 });
 
-async function loadEvents() {
-  const response = await fetch('sample_events.json');
-  events = await response.json();
+function normalizeEvent(rawEvent, idx) {
+  if (!rawEvent) return null;
+
+  if (rawEvent.context && rawEvent.outcome) {
+    const countBefore = rawEvent.context.count?.before || {};
+    const countAfter = rawEvent.context.count?.after || {};
+    const outs = rawEvent.context.outs || {};
+    const bases = rawEvent.context.bases || {};
+    const crowd = rawEvent.context.crowd || {};
+
+    return {
+      number: rawEvent.context.pitch_number ?? idx + 1,
+      batter: rawEvent.context.batter || 'Unknown',
+      outcome: rawEvent.outcome.result || 'unknown',
+      detail: rawEvent.outcome.detail || '',
+      balls_before: countBefore.balls ?? 0,
+      strikes_before: countBefore.strikes ?? 0,
+      outs_before: outs.before ?? 0,
+      balls_after: countAfter.balls ?? countBefore.balls ?? 0,
+      strikes_after: countAfter.strikes ?? countBefore.strikes ?? 0,
+      outs_after: outs.after ?? outs.before ?? 0,
+      bases_before: (bases.before || [false, false, false]).slice(0, 3),
+      bases_after: (bases.after || [false, false, false]).slice(0, 3),
+      runs_scored: rawEvent.outcome.runs_scored ?? 0,
+      total_runs: rawEvent.outcome.total_runs ?? 0,
+      contact_quality: rawEvent.outcome.contact_quality ?? 0,
+      crowd_energy_before: crowd.energy_before ?? 0,
+      crowd_energy_after: crowd.energy_after ?? 0,
+      crowd_modifiers: rawEvent.modifiers?.crowd || {},
+    };
+  }
+
+  return {
+    number: rawEvent.number ?? idx + 1,
+    batter: rawEvent.batter || 'Unknown',
+    outcome: rawEvent.outcome || 'unknown',
+    detail: rawEvent.detail || '',
+    balls_before: rawEvent.balls_before ?? 0,
+    strikes_before: rawEvent.strikes_before ?? 0,
+    outs_before: rawEvent.outs_before ?? 0,
+    balls_after: rawEvent.balls_after ?? rawEvent.balls_before ?? 0,
+    strikes_after: rawEvent.strikes_after ?? rawEvent.strikes_before ?? 0,
+    outs_after: rawEvent.outs_after ?? rawEvent.outs_before ?? 0,
+    bases_before: (rawEvent.bases_before || [false, false, false]).slice(0, 3),
+    bases_after: (rawEvent.bases_after || [false, false, false]).slice(0, 3),
+    runs_scored: rawEvent.runs_scored ?? 0,
+    total_runs: rawEvent.total_runs ?? 0,
+    contact_quality: rawEvent.contact_quality ?? 0,
+    crowd_energy_before: rawEvent.crowd_energy_before ?? 0,
+    crowd_energy_after: rawEvent.crowd_energy_after ?? 0,
+    crowd_modifiers: rawEvent.crowd_modifiers || {},
+  };
+}
+
+function setStatus(message, state = 'info') {
+  if (!statusEl) return;
+  statusEl.textContent = message;
+  statusEl.className = `status status-${state}`;
+}
+
+function applyEvents(normalizedEvents) {
+  events = normalizedEvents;
   logEl.innerHTML = '';
   currentIndex = 0;
   lastTick = 0;
   playing = true;
   playPauseBtn.textContent = 'Pause';
+  if (!events.length) {
+    setStatus('No events available in replay feed.', 'error');
+    return;
+  }
+  setStatus(`Loaded ${events.length} pitches from replay feed.`, 'success');
   stepOnce();
 }
 
+async function fetchReplayPayload() {
+  const response = await fetch(`${FEED_PATH}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`Replay feed unavailable (${response.status})`);
+  }
+  return response.json();
+}
+
+function versionFromPayload(payload) {
+  return [payload.updated_at, payload.game_id, payload.events?.length].join('|');
+}
+
+async function loadEvents({ silent = false } = {}) {
+  if (!silent) {
+    setStatus('Loading replay feed…', 'loading');
+  }
+
+  try {
+    const payload = await fetchReplayPayload();
+    const version = versionFromPayload(payload);
+    const normalizedEvents = (payload.events || [])
+      .map((evt, idx) => normalizeEvent(evt, idx))
+      .filter(Boolean);
+
+    if (version && version === feedVersion && silent) {
+      return;
+    }
+
+    feedVersion = version;
+    applyEvents(normalizedEvents);
+  } catch (error) {
+    setStatus(`Failed to load feed: ${error.message}`, 'error');
+    throw error;
+  }
+}
+
+async function refreshLoop() {
+  await loadEvents({ silent: true }).catch(() => null);
+}
+
 loadEvents();
+setInterval(refreshLoop, POLL_INTERVAL_MS);
 requestAnimationFrame(loop);
 
