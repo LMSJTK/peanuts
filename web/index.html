@@ -64,7 +64,24 @@
                 </div>
               </div>
             </div>
-            <p class="hint">Management inputs are stored locally and exposed for future AI managers.</p>
+            <div class="management-actions">
+              <div class="status-row">
+                <p id="managementStatus" class="status status-info" aria-live="polite">
+                  Validating lineup and budget...
+                </p>
+                <p id="syncStatus" class="status status-info" aria-live="polite">
+                  Preparing bridge file for simulator sync.
+                </p>
+              </div>
+              <div class="action-row">
+                <button id="downloadState" class="primary">Download sync file</button>
+                <label class="upload">
+                  <span>Load sync file</span>
+                  <input id="uploadState" type="file" accept="application/json" />
+                </label>
+              </div>
+            </div>
+            <p class="hint">Management inputs now validate required positions and budget, and export a bridge file for the simulator.</p>
           </section>
         </aside>
       </main>

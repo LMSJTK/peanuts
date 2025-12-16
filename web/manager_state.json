@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "team": {
+    "id": "peanuts-user-club",
+    "name": "Peanuts Club",
+    "lineup": [
+      { "name": "Ivy Sparks", "position": "CF" },
+      { "name": "Gale Torres", "position": "SS" },
+      { "name": "Kip Lantern", "position": "RF" },
+      { "name": "River Ocho", "position": "1B" },
+      { "name": "Juniper Vail", "position": "LF" },
+      { "name": "Hani Croft", "position": "3B" },
+      { "name": "Marlow Quinn", "position": "2B" },
+      { "name": "Tamsin Reed", "position": "C" },
+      { "name": "Noah Calder", "position": "DH" }
+    ],
+    "rotation": [
+      { "name": "Cy Lumen", "role": "SP" },
+      { "name": "Rosa Hallow", "role": "SP" },
+      { "name": "Dylan Ash", "role": "SP" },
+      { "name": "Mia Cortez", "role": "RP" },
+      { "name": "Khalil Snow", "role": "RP" }
+    ]
+  },
+  "finance": {
+    "ticket_price": 24,
+    "promotions": ["fireworks", "themeNight"],
+    "concessions_pricing": {
+      "Peanuts": 6,
+      "Crackerjacks": 7.5,
+      "Soda": 4,
+      "Local Brew": 8
+    },
+    "cash_on_hand": 250000,
+    "revenue": { "gate": 120000 },
+    "expenses": { "promotions": 23000 }
+  }
+}
