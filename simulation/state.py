@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence
 import random
 
 from .crowd import CrowdEnergyAccumulator, CrowdEnergySnapshot
 from .pitch import PitchContext, PitchOutcome, PitchParticipants, BatterRatings, PitcherRatings, DefenseRatings, resolve_pitch_outcome
+from .persistence import BoxScoreSummary, SeasonState, save_season_state
 
 
 @dataclass
@@ -90,6 +92,7 @@ class HalfInningState:
         situational_modifiers: Optional[Dict[str, float]] = None,
         seed: Optional[int] = None,
         *,
+        starting_batter_index: int = 0,
         loggers: Optional[Sequence[Callable[[Dict[str, object]], None]]] = None,
         enable_crowd_effects: bool = True,
         enable_stadium_effects: bool = True,
@@ -104,7 +107,7 @@ class HalfInningState:
         self.outs = 0
         self.bases: tuple[bool, bool, bool] = (False, False, False)
         self.runs = 0
-        self.batter_index = 0
+        self.batter_index = starting_batter_index
         self.pitch_number = 0
         self.events: List[PitchEvent] = []
         self.replay_log: List[Dict[str, object]] = []
@@ -308,3 +311,166 @@ class HalfInningState:
         while not self.is_complete() and self.pitch_number < max_pitches:
             self.pitch_once()
         return self.events
+
+
+class GameState:
+    """Run a full game by sequencing half-innings and tracking box scores."""
+
+    def __init__(
+        self,
+        *,
+        game_id: str,
+        home_team: str,
+        away_team: str,
+        home_lineup: Sequence[Dict[str, object]],
+        away_lineup: Sequence[Dict[str, object]],
+        home_pitcher: PitcherRatings,
+        away_pitcher: PitcherRatings,
+        home_defense: DefenseRatings,
+        away_defense: DefenseRatings,
+        stadium_modifiers: Optional[Dict[str, float]] = None,
+        seed: Optional[int] = None,
+        max_innings: int = 9,
+        max_extra_innings: int = 3,
+        max_half_inning_pitches: int = 120,
+        enable_crowd_effects: bool = True,
+        enable_stadium_effects: bool = True,
+        enable_organ_flair: bool = False,
+    ) -> None:
+        self.game_id = game_id
+        self.home_team = home_team
+        self.away_team = away_team
+        self.home_lineup = list(home_lineup)
+        self.away_lineup = list(away_lineup)
+        self.home_pitcher = home_pitcher
+        self.away_pitcher = away_pitcher
+        self.home_defense = home_defense
+        self.away_defense = away_defense
+        self.stadium_modifiers = stadium_modifiers or {}
+        self.max_innings = max_innings
+        self.max_extra_innings = max_extra_innings
+        self.max_half_inning_pitches = max_half_inning_pitches
+        self.enable_crowd_effects = enable_crowd_effects
+        self.enable_stadium_effects = enable_stadium_effects
+        self.enable_organ_flair = enable_organ_flair
+        self.home_score = 0
+        self.away_score = 0
+        self.inning_lines: List[List[int]] = []
+        self.replay_log: List[Dict[str, object]] = []
+        self._home_batter_index = 0
+        self._away_batter_index = 0
+        self._rng = random.Random(seed)
+
+    def _half_seed(self) -> Optional[int]:
+        return self._rng.randint(0, 1_000_000)
+
+    def _annotate_events(
+        self, events: List[Dict[str, object]], inning: int, half: str, batting_team: str
+    ) -> List[Dict[str, object]]:
+        annotated: List[Dict[str, object]] = []
+        for payload in events:
+            snapshot = deepcopy(payload)
+            snapshot["half_inning"] = {"inning": inning, "half": half, "batting_team": batting_team}
+            annotated.append(snapshot)
+        return annotated
+
+    def _play_half(
+        self,
+        *,
+        batting_lineup: Sequence[Dict[str, object]],
+        defense: DefenseRatings,
+        pitcher: PitcherRatings,
+        batter_index: int,
+        inning: int,
+        half: str,
+    ) -> tuple[int, int]:
+        half_state = HalfInningState(
+            lineup=batting_lineup,
+            defense=defense,
+            pitcher=pitcher,
+            situational_modifiers=self.stadium_modifiers,
+            seed=self._half_seed(),
+            starting_batter_index=batter_index,
+            enable_crowd_effects=self.enable_crowd_effects,
+            enable_stadium_effects=self.enable_stadium_effects,
+            enable_organ_flair=self.enable_organ_flair,
+        )
+        half_state.play_to_completion(max_pitches=self.max_half_inning_pitches)
+
+        self.replay_log.extend(
+            self._annotate_events(
+                half_state.replay_log,
+                inning=inning,
+                half=half,
+                batting_team=self.away_team if half == "top" else self.home_team,
+            )
+        )
+        return half_state.runs, half_state.batter_index % len(batting_lineup)
+
+    def play_game(self) -> BoxScoreSummary:
+        total_frames = self.max_innings + self.max_extra_innings
+        for inning in range(1, total_frames + 1):
+            away_runs, self._away_batter_index = self._play_half(
+                batting_lineup=self.away_lineup,
+                defense=self.home_defense,
+                pitcher=self.home_pitcher,
+                batter_index=self._away_batter_index,
+                inning=inning,
+                half="top",
+            )
+            self.away_score += away_runs
+
+            home_runs = 0
+            should_play_bottom = inning < self.max_innings or self.away_score >= self.home_score
+            if should_play_bottom:
+                home_runs, self._home_batter_index = self._play_half(
+                    batting_lineup=self.home_lineup,
+                    defense=self.away_defense,
+                    pitcher=self.away_pitcher,
+                    batter_index=self._home_batter_index,
+                    inning=inning,
+                    half="bottom",
+                )
+                self.home_score += home_runs
+
+            self.inning_lines.append([away_runs, home_runs])
+
+            if inning >= self.max_innings and self.home_score != self.away_score:
+                break
+
+            if inning >= total_frames:
+                break
+
+        return self.to_box_score_summary()
+
+    def to_box_score_summary(self) -> BoxScoreSummary:
+        return BoxScoreSummary(
+            game_id=self.game_id,
+            home_team=self.home_team,
+            away_team=self.away_team,
+            home_score=self.home_score,
+            away_score=self.away_score,
+            inning_lines=deepcopy(self.inning_lines),
+        )
+
+    def persist_box_score(
+        self,
+        *,
+        season_year: int,
+        destination: Path | str,
+        season_state: Optional[SeasonState] = None,
+    ) -> Path:
+        summary = self.to_box_score_summary()
+        state = season_state or SeasonState.empty(season_year)
+        state.box_scores.append(summary)
+        return save_season_state(state, destination)
+
+    def as_replay_payload(self) -> Dict[str, object]:
+        return {
+            "game_id": self.game_id,
+            "home_team": self.home_team,
+            "away_team": self.away_team,
+            "score": {"home": self.home_score, "away": self.away_score},
+            "inning_lines": deepcopy(self.inning_lines),
+            "events": deepcopy(self.replay_log),
+        }
