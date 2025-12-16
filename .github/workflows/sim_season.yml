@@ -1,0 +1,37 @@
+name: Season simulation
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: Smoke simulation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run smoke season
+        run: |
+          python scripts/sim_season.py --games 5 --series-length 2 --season-year 2024 --season-state-path tmp/season_state_smoke.json --summary tmp/season_summary_smoke.json
+  nightly:
+    name: Nightly long simulation
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run extended season
+        run: |
+          python scripts/sim_season.py --games 60 --series-length 3 --season-year 2024 --season-state-path tmp/season_state_nightly.json --summary tmp/season_summary_nightly.json
